@@ -47,6 +47,6 @@ data_tb %>%
   count(word) %>% 
   arrange(desc(n)) %>% 
   slice_max(n, n = 10, with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(word, n), y = n) +
+  ggplot(aes(x = fct_reorder(word, n), y = n)) +
   geom_col() +
   coord_flip()

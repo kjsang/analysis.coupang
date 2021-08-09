@@ -40,3 +40,4 @@ for(page_i in PAGE) {
 }
 
 NEWS0 <- as.data.frame(cbind(url=news_url, query = QUERY))
+
