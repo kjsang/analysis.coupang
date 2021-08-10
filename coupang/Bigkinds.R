@@ -6,15 +6,14 @@ pacman::p_load(
 
 useNIADic()
 my_dic <- data.frame(
-  c("100만원", "재난지원금", "재난기본소득", "긴급재난지원금", "코로나19", "코로나 19", "문재인"),
-  c("nqq", "nqq", "nqq", "nqq", "nqq", "nqq", "nqpc")
+  c("쿠팡"),
+  c("nqq")
 )
 buildDictionary(ext_dic = "NIADic",
                 user_dic = my_dic)
 
 stopping_ko_end=regex("입니다$|이다$")
-stopping_ko=tibble(단어=c('이','가','은','는',
-                          "정부", "국민", "우리", "이번", "논의", "억원", "오늘", "이후", "취지"))
+stopping_ko=tibble(단어=c('이','가','은','는'))
 
 
 
