@@ -33,6 +33,10 @@ keyword %>%
   left_join(char, by = "id") %>% 
   select(id, 일자, 언론사, 제목, 인물, 키워드, 정보원, 인용문) -> rawdata
 
+read_csv("coupang_news.csv") -> coupang
+coupang %>% 
+  select(date, news, news_title, news_content)
+
 # 사전 불러오기 ---------------------------------------------
 
 useNIADic()
@@ -98,25 +102,33 @@ data_upper5 %>%
 data_upper5 %>% 
   left_join(predata_ver2, by = "정보원") -> data_tb
 
-raw1 %>% 
-  mutate(id = 1:length(news_content)) %>% 
-  group_by(id) %>% 
-  mutate(word = SimplePos09(news_content) %>% 
-              unlist() %>% 
-              paste(collapse = " ") %>% 
-              str_extract_all(regex('[^\\s]+/N')) %>%
-              paste(collapse = ' ') %>% 
-              str_remove_all('/N') %>% 
-              str_remove_all(stopping_ko_end)
-  ) %>% 
-  ungroup() %>%
-  unnest_tokens(word, news_content) %>% 
-  anti_join(stopping_ko) %>% 
-  filter(str_length(word) > 1) -> data_tb
+par(family = "AppleGothic")
+theme_set(theme_gray(base_family = 'AppleGothic'))
+
+# 기사 수 추이 분석
 data_tb %>% 
-  count(word) %>% 
-  arrange(desc(n)) %>% 
-  slice_max(n, n = 10, with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(word, n), y = n)) +
-  geom_col() +
-  coord_flip()
+  arrange(일자) %>% 
+  mutate(id = 1:length(일자)) %>% 
+  count(일자) %>% 
+  mutate(날짜 = paste0(year(일자),"년")) %>%
+  ggplot(aes(x = 날짜, y = n)) +
+  geom_col() 
+  
+
+data_tb %>%
+  select(일자,  정보원,  인용문) %>%
+  rename(일자 = 일자) %>% 
+  mutate(시기 = ifelse(month(일자) == 3 & day(일자) < 18, "초기",
+                     ifelse(month(일자) == 3 | month(일자) == 4 & day(일자) < 15, "중기_총선이전",
+                            ifelse(month(일자) == 4 & day(일자) < 30, "중기_총선이후", "후기"))) %>% 
+             as.factor()) %>% 
+  mutate(id = 1:length(인용문)) %>% 
+  select(id, 일자, 시기,  정보원,  인용문) %>% 
+  mutate(인용문 = 인용문 %>% 
+              str_replace_all("코로나19", "코로나") %>% 
+              str_replace_all("100만원", "백만원") %>% 
+              str_replace_all("50만원", "오십만원") %>% 
+              str_replace_all("투자하", "투자") %>% 
+              str_replace_all("포퓰리즘에", "포퓰리즘") %>% 
+              str_remove_all("\\d+")
+            ) -> data_tb
