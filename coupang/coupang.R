@@ -6,8 +6,7 @@ pacman::p_load(
   tidyverse, magrittr,
   readxl,
   tidytext,
-  KoNLP, lubridate, tidylo,
-  extrafont, showtext
+  KoNLP, lubridate, tidylo
 )
 
 # 인용 (패키지 및 R 버전)
@@ -97,6 +96,14 @@ raw1 %>%
   # select(news_title)
 
 
+readxl::read_xlsx("coupang_news_rev_filter.xlsx") -> data
+data %>% 
+  filter(!구분 == 1) %>% 
+  # filter(주요사건 == 1) %>% 
+  # write_excel_csv("event.csv")
+  select(-주요사건, -구분) -> data
+data
+
 par(family = "AppleGothic")
 theme_set(theme_gray(base_family = 'AppleGothic'))
 
@@ -109,7 +116,8 @@ data %>%
   mutate(시기 = ifelse(year(date) %in% c(2011:2015) | year(date) == 2016 & month(date) < 9, "1기", # 로켓배송 합법화 시기 기준으로 1기 설정
                      ifelse(year(date) %in% c(2016:2019) | year(date) == 2020 & month(date) <=6, "2기", "3기")) # 공정위에서 온라인 플랫폼법 제정 추진 발표 기점으로 2기, 그리고 그 이후부터 현재까지가 3기
   ) -> data_coupang
-
+# data_coupang %>% write_excel_csv("coupang_news_rev.csv")
+# 전처리 이후 수작업으로 데이터 선별, 4117 건의 기사 수집
 
 # 시각화 준비 ----------------------------------------------
 
@@ -119,13 +127,16 @@ theme_set(theme_gray(base_family = 'AppleGothic'))
 
 # 시기별 기사 빈도 시각화 ---------------------------------------
 
-data_coupang %>% 
-  count(시기) %>% 
-  ggplot(aes(x = 시기, y = n, fill = 시기)) +
-  geom_col() +
+data_coupang %>%
+  as_tibble() %>% 
+  count(시기) %>%
+  ggplot(aes(x =  시기, y = n, fill =  시기)) +
+  geom_col(fill = c("#67D5B5","#EE7785","#C89EC4")) +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
   ylab("기사빈도수") +
-  ggtitle("시기별 기사 빈도수 (검색어: 쿠팡)")
+  ggtitle("시기별 기사 빈도수 (검색어: 쿠팡)") +
+  geom_text(aes(label = n), vjust = -1) +
+  ylim(0, 2200)
 
 # 기사빈도 시각화 --------------------------------------------
 
@@ -139,13 +150,42 @@ data_coupang %>%
   theme_minimal(base_family = "AppleGothic") +
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  ylim(0, 800) +
-  annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 100, alpha = .5, fill="skyblue") +
-  annotate("rect", xmin = 23, xmax = 40, ymin = 0, ymax = 760, alpha = .5, fill="orange") +
-  annotate("rect", xmin = 40, xmax = 44, ymin = 0, ymax = 650, alpha = .5, fill="red") +
-  annotate("text", x = 10, y = 140, size = 5, label = "1기", family = "AppleGothic") +
-  annotate("text", x = 30, y = 790, size = 5, label = "2기", family = "AppleGothic") +
-  annotate("text", x = 42, y = 690, size = 5, label = "3기", family = "AppleGothic")
+  ylim(0, 850) +
+  annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
+  annotate("rect", xmin = 23, xmax = 40, ymin = 0, ymax = 780, alpha = .3, fill="#EE7785") +
+  annotate("rect", xmin = 40, xmax = 44, ymin = 0, ymax = 660, alpha = .3, fill="#C89EC4") +
+  annotate("text", x = 12, y = 160, size = 5, label = "1기", family = "AppleGothic") +
+  annotate("text", x = 32, y = 810, size = 5, label = "2기", family = "AppleGothic") +
+  annotate("text", x = 42, y = 690, size = 5, label = "3기", family = "AppleGothic") +
+  annotate("text", x = 22, y = 100, size = 3, label = "80", family = "AppleGothic") +
+  annotate("text", x = 38, y = 750, size = 3, label = "730", family = "AppleGothic") +
+  annotate("text", x = 42, y = 635, size = 3, label = "616", family = "AppleGothic")
 
 
-  
+
+data_coupang %>% 
+  as_tibble() %>% 
+  group_by(id) %>% 
+  mutate(news_content = SimplePos09(news_content) %>% 
+              unlist() %>% 
+              paste(collapse = " ") %>% 
+              str_extract_all(regex('[^\\s]+/N')) %>%
+              paste(collapse = ' ') %>% 
+              str_remove_all('/N') %>% 
+              str_remove_all(stopping_ko_end)
+  ) %>% 
+  ungroup() %>%
+  unnest_tokens(단어, news_content) %>% 
+  anti_join(stopping_ko) %>% 
+  filter(str_length(단어) > 1) -> data_word
+
+data_word %>% 
+  group_by(시기) %>% 
+  count(단어) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n, n = 20, with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(단어, n), y = n, fill = 시기)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(~시기, drop = F, scales = "free_y") +
+  ggtitle("시기별 단어 빈도분석")

@@ -132,3 +132,21 @@ data_tb %>%
               str_replace_all("포퓰리즘에", "포퓰리즘") %>% 
               str_remove_all("\\d+")
             ) -> data_tb
+
+data_tb %>% 
+  mutate(연합구분 = ifelse(정보원 %in% c("청와대", "문재인대통령"), "중립", 
+                          ifelse(정보원 %in% c("민주당_김경수_광역자치단체", "민주당_이재명_광역자치단체", "민주당_박원순_광역자체단체", "정의당"), "찬성", "반대"))) %>% 
+  filter(시기 == "초기") %>% 
+  group_by(id) %>% 
+  mutate(인용문 = SimplePos09(인용문) %>% 
+              unlist() %>% 
+              paste(collapse = " ") %>% 
+              str_extract_all(regex('[^\\s]+/N')) %>%
+              paste(collapse = ' ') %>% 
+              str_remove_all('/N') %>% 
+              str_remove_all(stopping_ko_end)
+  ) %>% 
+  ungroup() %>%
+  unnest_tokens(단어, 인용문) %>% 
+  anti_join(stopping_ko) %>% 
+  filter(str_length(단어) > 1) -> data_tb_초기 
