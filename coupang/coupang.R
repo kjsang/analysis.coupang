@@ -6,9 +6,9 @@ pacman::p_load(
   tidyverse, magrittr,
   readxl,
   tidytext,
-  KoNLP, lubridate, tidylo
+  KoNLP, lubridate, tidylo, rvest
 )
-
+library(RSelenium)
 # 인용 (패키지 및 R 버전)
 citation()
 citation("tidyverse")
@@ -18,6 +18,8 @@ citation("tidylo")
 citation("tidytext")
 citation("KoNLP")
 citation("NIADic")
+citation("RSelenium")
+citation("rvest")
 
 # R Studio 버전 
 RStudio.Version()
@@ -119,6 +121,7 @@ data %>%
 # data_coupang %>% write_excel_csv("coupang_news_rev.csv")
 # 전처리 이후 수작업으로 데이터 선별, 4117 건의 기사 수집
 
+data_coupang
 # 시각화 준비 ----------------------------------------------
 
 par(family = "AppleGothic")
