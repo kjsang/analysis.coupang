@@ -8,7 +8,12 @@ pacman::p_load(
   tidytext,
   KoNLP, lubridate, tidylo, rvest
 )
-library(RSelenium)
+
+# install.packages('remotes')
+# remotes::install_github('haven-jeon/KoSpacing')
+library(KoSpacing)
+set_env()
+
 # 인용 (패키지 및 R 버전)
 citation()
 citation("tidyverse")
@@ -165,24 +170,38 @@ data_coupang %>%
   annotate("text", x = 42, y = 635, size = 3, label = "616", family = "AppleGothic")
 
 
-
+# 명사 토크나이징 작업 
 data_coupang %>% 
   as_tibble() %>% 
-  group_by(id) %>% 
-  mutate(news_content = SimplePos09(news_content) %>% 
-              unlist() %>% 
-              paste(collapse = " ") %>% 
-              str_extract_all(regex('[^\\s]+/N')) %>%
-              paste(collapse = ' ') %>% 
-              str_remove_all('/N') %>% 
-              str_remove_all(stopping_ko_end)
-  ) %>% 
-  ungroup() %>%
-  unnest_tokens(단어, news_content) %>% 
-  anti_join(stopping_ko) %>% 
-  filter(str_length(단어) > 1) -> data_word
-
+  unnest_tokens(input = news_content,
+                output = ,
+                token = extractNoun,
+                drop = F)  -> data_word
 data_word %>% 
+  select(-news_content) -> data_word
+
+data_word %>% write_excel_csv("coupang_word.csv")
+read_csv("coupang_word.csv") -> data_word 
+
+
+# 형태소 분석 후 전처리 ----------------------------------------
+
+data_word %>% # 1,176,189 데이터 추출
+  filter(!words %>% str_detect("[:digit:]")) %>%  # 숫자 제거 1,077,777
+  filter(words %>% str_length() > 1) %>%  # 한 글자 단어 제거
+  filter(words %>% str_detect("쿠팡")) %>% 
+  count(words) %>% arrange(desc(n)) %>% as.data.frame()
+
+data_word %>% # 842,948 데이터 중 
+  filter(!words %>% str_detect("[:digit:]")) %>% 
+  filter(words %>% str_detect("쿠팡")) %>% 
+  count(words) %>% arrange(desc(n)) %>% 
+  as.data.frame()
+
+
+
+
+data_word_rev %>% 
   group_by(시기) %>% 
   count(단어) %>% 
   arrange(desc(n)) %>% 
@@ -191,4 +210,4 @@ data_word %>%
   geom_col() +
   coord_flip() +
   facet_wrap(~시기, drop = F, scales = "free_y") +
-  ggtitle("시기별 단어 빈도분석")
+  ggtitle("시기별words 빈도분석")
