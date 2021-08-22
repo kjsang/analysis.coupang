@@ -215,8 +215,7 @@ data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (788,068 건
 
 data_word_prep %>% 
   filter(!words %>% str_detect("경향|경향신문|연합인포맥스|동아일보|동아|경향|신문|뉴스|제보하기")) %>% 
-  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기")) %>% 
-  filter(!words %>% str_detect("   ")) %>% 
+  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기|재배포|바로가기")) %>% 
   mutate(
          words = ifelse(words %>%  str_detect("네이버"), "네이버", words),
          words = ifelse(words %>%  str_detect("카카오"), "카카오", words),
@@ -247,15 +246,21 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("쿠팡이츠"), "쿠팡이츠", words),
          words = ifelse(words %>%  str_detect("쿠팡플렉스"), "쿠팡플렉스", words),
          words = ifelse(words %>%  str_detect("쿠팡(은|는|이|가)$"), "쿠팡", words),
-         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words),
+         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words), # 1기 시작 
          words = ifelse(words %>%  str_detect("페이스북"), "페이스북", words),
          words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words),
          words = ifelse(words %>%  str_detect("그루폰"), "그루폰코리아", words),
          words = ifelse(words %>%  str_detect("위메이크프라이스|위메프|위메이크"), "위메프", words),
+         words = ifelse(words %>%  str_detect("모바일웹"), "모바일웹", words),
+         words = ifelse(words %>%  str_detect("소셜커머스"), "소셜커머스", words),
+         words = ifelse(words %>%  str_detect("코이카"), "한국국제협력단", words),
+         words = ifelse(words %>%  str_detect("어니스트"), "어니스트비", words),
+         words = ifelse(words %>%  str_detect("인모비"), "인모비", words),
+         words = ifelse(words %>%  str_detect("비즈앤라이프"), "비즈앤라이프", words)
          ) %>% 
   filter(!words %>% str_detect("쿠팡")) -> data_word_prep2
 data_word_prep2 %>% 
-  filter(words %>% str_detect("위메이크프라이스|위메프|위메이크")) %>% 
+  filter(words %>% str_detect("비즈앤")) %>% 
   count(words) %>% arrange(desc(n)) %>% as.data.frame()
 # 단어빈도표 도출 --------------------------------------------
 
