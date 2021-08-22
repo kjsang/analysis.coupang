@@ -7,7 +7,7 @@ pacman::p_load(
   readxl,
   tidytext,
   KoNLP, lubridate, tidylo, rvest,
-  tm, 
+  tm
 )
 
 
@@ -191,11 +191,9 @@ data_coupang %>%
                 output = words,
                 token = extractNoun,
                 drop = F) %>% 
-  select(-news_content) -> data_word
-data_word %>% 
-  select(-news_content) -> data_word
+  select(-news_content) -> data_word # 토크나이징 추출
 
-data_word %>% write_excel_csv("coupang_word.csv")
+data_word %>% write_excel_csv("coupang_word.csv") # 중간 저장
 read_csv("coupang_word.csv") -> data_word 
 
 
@@ -203,7 +201,8 @@ read_csv("coupang_word.csv") -> data_word
 
 data_word %>% # 1,176,189 데이터 추출
   filter(!words %>% str_detect("[:digit:]")) %>%  # 숫자 제거 1,077,777
-  filter(words %>% str_length() > 1) %>%  # 한 글자 단어 제거
+  filter(words %>% str_length() > 1) %>% # 한 글자 단어 제거
+  filter(words %>% str_length() <= 10) %>% # 열 글자를 초과하는 단어 제거
   mutate(words = words %>% 
            str_replace_all("\\.", "")
   ) -> data_word_prep
@@ -217,6 +216,7 @@ data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (788,068 건
 data_word_prep %>% 
   filter(!words %>% str_detect("경향|경향신문|연합인포맥스|동아일보|동아|경향|신문|뉴스|제보하기")) %>% 
   filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기")) %>% 
+  filter(!words %>% str_detect("   ")) %>% 
   mutate(
          words = ifelse(words %>%  str_detect("네이버"), "네이버", words),
          words = ifelse(words %>%  str_detect("카카오"), "카카오", words),
@@ -247,10 +247,16 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("쿠팡이츠"), "쿠팡이츠", words),
          words = ifelse(words %>%  str_detect("쿠팡플렉스"), "쿠팡플렉스", words),
          words = ifelse(words %>%  str_detect("쿠팡(은|는|이|가)$"), "쿠팡", words),
+         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words),
+         words = ifelse(words %>%  str_detect("페이스북"), "페이스북", words),
+         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words),
+         words = ifelse(words %>%  str_detect("그루폰"), "그루폰코리아", words),
+         words = ifelse(words %>%  str_detect("위메이크프라이스|위메프|위메이크"), "위메프", words),
          ) %>% 
-  filter(!words %>% str_detect("^쿠팡$")) -> data_word_prep2
-  # filter(words %>% str_detect("쇼핑몰")) %>% 
-  # count(words) %>% arrange(desc(n)) %>% as.data.frame()
+  filter(!words %>% str_detect("쿠팡")) -> data_word_prep2
+data_word_prep2 %>% 
+  filter(words %>% str_detect("위메이크프라이스|위메프|위메이크")) %>% 
+  count(words) %>% arrange(desc(n)) %>% as.data.frame()
 # 단어빈도표 도출 --------------------------------------------
 
 data_word_prep2 %>% 
@@ -293,7 +299,6 @@ figure_1_3
 
 # TF-IDF 값 --------------------------------------------
 
-
 # tf_idf 값 뽑기
 data_word_prep2 %>% 
   count(시기, words, sort = T) %>% 
@@ -334,7 +339,7 @@ coupang_count_1기 %>% # tf-idf 값 상위 50
   slice_max(tf_idf, n = 50, with_ties = F) %>%
   ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
   geom_col() +
-  geom_text(aes(label = tf_idf), hjust = 1) +
+  geom_text(aes(label = round(tf_idf, digit = 5)), hjust = 1) +
   xlab("단어") + ylab("빈도") +
   ggtitle("시기별 출현단어 빈도분석: 1기")
 
