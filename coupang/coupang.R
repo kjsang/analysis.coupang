@@ -6,13 +6,10 @@ pacman::p_load(
   tidyverse, magrittr,
   readxl,
   tidytext,
-  KoNLP, lubridate, tidylo, rvest
+  KoNLP, lubridate, tidylo, rvest,
+  tm, 
 )
 
-# install.packages('remotes')
-# remotes::install_github('haven-jeon/KoSpacing')
-library(KoSpacing)
-set_env()
 
 # 인용 (패키지 및 R 버전)
 citation()
@@ -123,8 +120,25 @@ data %>%
   mutate(시기 = ifelse(year(date) %in% c(2011:2015) | year(date) == 2016 & month(date) < 9, "1기", # 로켓배송 합법화 시기 기준으로 1기 설정
                      ifelse(year(date) %in% c(2016:2019) | year(date) == 2020 & month(date) <=6, "2기", "3기")) # 공정위에서 온라인 플랫폼법 제정 추진 발표 기점으로 2기, 그리고 그 이후부터 현재까지가 3기
   ) -> data_coupang
-# data_coupang %>% write_excel_csv("coupang_news_rev.csv")
+data_coupang %>% write_excel_csv("coupang_news_4107.csv")
 # 전처리 이후 수작업으로 데이터 선별, 4117 건의 기사 수집
+# 2011년 1월 1일부터 2021년 7월 31일까지 데이터 4107 건
+
+read_csv("coupang_news_4107.csv") -> data_coupang
+data_coupang %>% 
+  mutate(경쟁상황 = 0,
+           고용및노동이슈 = 0,
+           사회보장정책 = 0,
+           조세정책 = 0,
+           소비자안전 = 0,
+           소비자동맹 = 0,
+           투자자동맹 = 0,
+           기존규제 = 0,
+           정치적동원 = 0,
+           코로나 = 0,
+           갑질상황 = 0) %>% 
+  write_excel_csv("coupang_news_4107_rev.csv")
+
 
 data_coupang
 # 시각화 준비 ----------------------------------------------
@@ -174,9 +188,10 @@ data_coupang %>%
 data_coupang %>% 
   as_tibble() %>% 
   unnest_tokens(input = news_content,
-                output = ,
+                output = words,
                 token = extractNoun,
-                drop = F)  -> data_word
+                drop = F) %>% 
+  select(-news_content) -> data_word
 data_word %>% 
   select(-news_content) -> data_word
 
@@ -189,25 +204,238 @@ read_csv("coupang_word.csv") -> data_word
 data_word %>% # 1,176,189 데이터 추출
   filter(!words %>% str_detect("[:digit:]")) %>%  # 숫자 제거 1,077,777
   filter(words %>% str_length() > 1) %>%  # 한 글자 단어 제거
-  filter(words %>% str_detect("쿠팡")) %>% 
-  count(words) %>% arrange(desc(n)) %>% as.data.frame()
+  mutate(words = words %>% 
+           str_replace_all("\\.", "")
+  ) -> data_word_prep
 
-data_word %>% # 842,948 데이터 중 
-  filter(!words %>% str_detect("[:digit:]")) %>% 
-  filter(words %>% str_detect("쿠팡")) %>% 
-  count(words) %>% arrange(desc(n)) %>% 
-  as.data.frame()
+# 빈도가 2 이하인 단어는 추출하여 제외
+data_word_prep %>% 
+  count(words) %>% 
+  filter(!n >= 3) -> anti_word
+data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (788,068 건)
 
+data_word_prep %>% 
+  filter(!words %>% str_detect("경향|경향신문|연합인포맥스|동아일보|동아|경향|신문|뉴스|제보하기")) %>% 
+  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기")) %>% 
+  mutate(
+         words = ifelse(words %>%  str_detect("네이버"), "네이버", words),
+         words = ifelse(words %>%  str_detect("카카오"), "카카오", words),
+         words = ifelse(words %>%  str_detect("번가"), "11번가", words),
+         words = ifelse(words %>%  str_detect("코로나"), "코로나바이러스", words),
+         words = ifelse(words %>%  str_detect("확진자"), "확진자", words),
+         words = ifelse(words %>%  str_detect("백신"), "백신", words),
+         words = ifelse(words %>%  str_detect("산업재해보험"), "산재보험", words),
+         words = ifelse(words %>%  str_detect("노동자"), "노동자", words),
+         words = ifelse(words %>%  str_detect("노조"), "노동조합", words),
+         words = ifelse(words %>%  str_detect("택배(업|사|업계)|한진|롯데택배|로젠택배|[가-힣]{2}택배"), "택배업계", words),
+         words = ifelse(words %>%  str_detect("플랫폼"), "플랫폼", words),
+         words = ifelse(words %>%  str_detect("불공정"), "불공정거래", words),
+         words = ifelse(words %>%  str_detect("경쟁사|경쟁업체|경쟁자|경쟁회사|경쟁상대"), "경쟁사", words),
+         words = ifelse(words %>%  str_detect("보건당국|보건기구|보건복지부"), "보건당국", words),
+         words = ifelse(words %>%  str_detect("보건교육|보건의료|공중보건|안전보건"), "보건", words),
+         words = ifelse(words %>%  str_detect("덕평물류센터"), "쿠팡덕평물류센터", words),
+         words = ifelse(words %>%  str_detect("부천물류센터"), "쿠팡부천물류센터", words),
+         words = ifelse(words %>%  str_detect("쿠팡+물류센터"), "쿠팡물류센터", words),
+         
+         words = ifelse(words %>%  str_detect("배달의민족|배민"), "배달의민족", words),
+         words = ifelse(words %>%  str_detect("쿠팡맨"), "쿠팡맨", words),
+         words = ifelse(words %>%  str_detect("쿠친"), "쿠친", words),
+         words = ifelse(words %>%  str_detect("배달앱"), "배달어플리케이션", words),
+         words = ifelse(words %>%  str_detect("라이더유니온"), "라이더유니온", words),
+         words = ifelse(words %>%  str_detect("공정위|공정거래위"), "공정거래위원회", words),
+         words = ifelse(words %>%  str_detect("쿠팡이츠"), "쿠팡이츠", words),
+         words = ifelse(words %>%  str_detect("쿠팡이츠"), "쿠팡이츠", words),
+         words = ifelse(words %>%  str_detect("쿠팡플렉스"), "쿠팡플렉스", words),
+         words = ifelse(words %>%  str_detect("쿠팡(은|는|이|가)$"), "쿠팡", words),
+         ) %>% 
+  filter(!words %>% str_detect("^쿠팡$")) -> data_word_prep2
+  # filter(words %>% str_detect("쇼핑몰")) %>% 
+  # count(words) %>% arrange(desc(n)) %>% as.data.frame()
+# 단어빈도표 도출 --------------------------------------------
 
-
-
-data_word_rev %>% 
-  group_by(시기) %>% 
-  count(단어) %>% 
-  arrange(desc(n)) %>% 
-  slice_max(n, n = 20, with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(단어, n), y = n, fill = 시기)) +
+data_word_prep2 %>% 
+  filter(시기 == "1기") %>% 
+  count(words) %>% 
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
-  facet_wrap(~시기, drop = F, scales = "free_y") +
-  ggtitle("시기별words 빈도분석")
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 1기")
+
+data_word_prep2 %>% 
+  filter(시기 == "2기") %>% 
+  count(words) %>% 
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 2기")
+
+data_word_prep2 %>% 
+  filter(시기 == "3기") %>% 
+  count(words) %>% 
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 3기")
+
+figure_1_1
+figure_1_2
+figure_1_3
+
+
+# TF-IDF 값 --------------------------------------------
+
+
+# tf_idf 값 뽑기
+data_word_prep2 %>% 
+  count(시기, words, sort = T) %>% 
+  bind_tf_idf(words, 시기, n) -> coupang_tf_idf
+coupang_tf_idf
+
+# tf_idf log_odds_weighted 
+coupang_tf_idf %>% 
+  bind_log_odds(set = 시기, 
+                feature = words, 
+                n = n) %>%
+  rename(log_odds = "log_odds_weighted") -> coupang_tf_idf
+
+# 단어 중심으로 통합: 1기
+coupang_tf_idf %>%
+  filter(시기  == "1기") %>%
+  group_by(words) %>%
+  summarise(
+    n = sum(n, na.rm = TRUE),
+    tf_idf = sum(tf_idf, na.rm = TRUE),
+    log_odds = sum(log_odds, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n)) %>%
+  ungroup() -> coupang_count_1기
+
+coupang_count_1기 %>% # 단순빈도분석
+  mutate(words = reorder(words, n)) %>%
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 1기")
+
+coupang_count_1기 %>% # tf-idf 값 상위 50
+  mutate(word = reorder(words, tf_idf)) %>%
+  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
+  geom_col() +
+  geom_text(aes(label = tf_idf), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 1기")
+
+coupang_count_1기 %>%
+  slice_max(log_odds, n = 50, with_ties = F) %>%
+  ggplot(mapping = aes(x=log_odds, 
+                       y=fct_reorder(words, log_odds))) +
+  geom_col() +
+  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 1기")
+
+# 단어 중심으로 통합: 2기
+coupang_tf_idf %>%
+  filter(시기  == "2기") %>%
+  group_by(words) %>%
+  summarise(
+    n = sum(n, na.rm = TRUE),
+    tf_idf = sum(tf_idf, na.rm = TRUE),
+    log_odds = sum(log_odds, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n)) %>%
+  ungroup() -> coupang_count_2기
+
+coupang_count_2기 %>% # 단순빈도분석
+  mutate(words = reorder(words, n)) %>%
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 2기")
+
+coupang_count_2기 %>% # tf-idf 값 상위 50
+  mutate(word = reorder(words, tf_idf)) %>%
+  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
+  geom_col() +
+  geom_text(aes(label = tf_idf), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 2기")
+
+coupang_count_2기 %>%
+  slice_max(log_odds, n = 50, with_ties = F) %>%
+  ggplot(mapping = aes(x=log_odds, 
+                       y=fct_reorder(words, log_odds))) +
+  geom_col() +
+  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 2기")
+
+
+# 단어 중심으로 통합: 3기
+coupang_tf_idf %>%
+  filter(시기  == "3기") %>%
+  group_by(words) %>%
+  summarise(
+    n = sum(n, na.rm = TRUE),
+    tf_idf = sum(tf_idf, na.rm = TRUE),
+    log_odds = sum(log_odds, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n)) %>%
+  ungroup() -> coupang_count_3기
+
+coupang_count_3기 %>% # 단순빈도분석
+  mutate(words = reorder(words, n)) %>%
+  slice_max(n, n = 50,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 3기")
+
+coupang_count_3기 %>% # tf-idf 값 상위 50
+  mutate(word = reorder(words, tf_idf)) %>%
+  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
+  geom_col() +
+  geom_text(aes(label = tf_idf), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 3기")
+
+coupang_count_3기 %>%
+  slice_max(log_odds, n = 50, with_ties = F) %>%
+  ggplot(mapping = aes(x=log_odds, 
+                       y=fct_reorder(words, log_odds))) +
+  geom_col() +
+  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
+  xlab("단어") + ylab("빈도") +
+  ggtitle("시기별 출현단어 빈도분석: 3기")
+
+# 단어문서행렬만들기 
+coupang_tf_idf %>% 
+  cast_dtm(document = 시기,
+           term = words,
+           value = n) -> coupang_dtm
+tm::inspect(coupang_dtm)
+coupang_tf_idf %>%
+  cast_dtm(document =  시기,
+           term = words,
+           value = tf_idf) -> coupang_dtm_tf_idf
+tm::inspect(coupang_dtm_tf_idf)
