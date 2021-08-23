@@ -7,7 +7,7 @@ pacman::p_load(
   readxl,
   tidytext,
   KoNLP, lubridate, tidylo, rvest,
-  tm
+  tm, furrr, topicmodels
 )
 
 
@@ -32,10 +32,29 @@ RStudio.Version()
 
 # 사전 불러오기 ---------------------------------------------
 
+# 사전 불러오기
 useNIADic()
+
+# 사용자 사전을 NIAdic과 통합
 my_dic <- data.frame(
-  c("쿠팡", "이커머스", "소셜네트워크서비스"),
-  c("nqq", "nqq", "nqq")
+  c("쿠팡", "이커머스", "소셜네트워크서비스", "오프라인", "티켓몬스터",
+  "위메프", "네이버", "카카오톡", "카카오페이", "네이버페이",
+  "배민라이더스", "배달의민족", "배민커넥터", "쿠팡이츠", "우아한형제들",
+  "로켓배송", "카카오쇼핑", "네이버쇼핑", "쓱배송", "이마트",
+  "공정거래위원회", "공정위", "과학기술정보통신부", "과기부", "과기정통부",
+  "유니콘기업", "스타트업", "정규직", "계약직", "특수고용",
+  "그루폰", "소셜커머스", "배달어플리케이션", "코로나", "이베이",
+  "이베이코리아", "산재보험", "고용보험", "국민연금", "4대보험",
+  "건강보험", "소프트뱅크", "손정의", "김범석", "불공정거래"), 
+  c("nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq",
+    "nqq", "nqq", "nqq",  "nqq", "nqq")
 )
 buildDictionary(ext_dic = "NIADic",
                 user_dic = my_dic)
@@ -60,16 +79,39 @@ coupang %>%
            str_replace_all("[\\‘\\,\\’\\“\\”\\ⓒ\\:]","") %>% 
            str_replace_all("SNS", "소셜네트워크서비스") %>% # 영문명칭 변경
            str_replace_all("〈경향닷컴은 한국온라인신문협회www.kona.or.kr의 디지털뉴스이용규칙에 따른 저작권을 행사합니다.〉","") %>% 
+           str_replace_all("네이버에서채널 구독하기.+", "") %>% 
+           str_replace_all("코로나19 속보는 네이버구독.+", "") %>% 
+           str_replace_all("영원한 이별 앞에서 환생의 문을 열다멀티미디어 스토리텔링", "") %>% 
+           str_replace_all("네이버에서도 뉴스는구독.+", "") %>% 
+           str_replace_all("네이버 홈에서채널 구독하기.+", "") %>% 
+           str_replace_all("속보는 네이버구독.+", "") %>% 
+           str_replace_all("장도리그림마당.+", "") %>% 
+           str_replace_all("확 달라진웹을 만나보세요.+", "") %>% 
+           str_replace_all("단독 뉴스트렌드 뉴스.+", "") %>% 
+           str_replace_all("이 시각핫뉴스클릭.+", "") %>% 
            str_replace_all("경향신문 & 경향닷컴www.khan.co.kr","") %>%
+           str_replace_all("쿠팡이츠 배민서 주문한 개고기 합법", "") %>% 
+           str_replace_all("뜨거운 감자|비동의 간음죄", "") %>% 
+           str_replace_all("초등생|성폭행하고도|여자라서 무죄", "") %>% 
+           str_replace_all("한국은행이 5만원권 발행 중단", "") %>% 
+           str_replace_all("집 볼 때 쓰는 메모장", "") %>% 
+           str_replace_all("공수처장은 탄핵소추 못한다", "") %>% 
+           str_replace_all("차별금지법안 성 소수자 어떤 내용", "") %>% 
+           str_replace_all("미 교도소행 면한 손정우 국내서는", "") %>% 
+           str_replace_all("백선엽 대전현충원|안장홀대논란", "") %>% 
+           str_replace_all("개헌없이 국회 대법원|옮길 수 있나", "") %>% 
+           str_replace_all("절름발이 정책도|장애인 비하", "") %>% 
+           str_replace_all("태양광설비와 산사태 연관성", "") %>% 
+           str_replace_all("제보하기|저작권자|무단 전재|재배포 금지", "") %>% 
            str_replace_all("서울 연합뉴스", "") %>% 
            str_replace_all("서울 연합비즈뉴스", "") %>% 
            str_replace_all("연합뉴스", "") %>% 
-           str_replace_all("관련기사", "") %>% 
+           str_replace_all("관련기사.+", "") %>% 
            str_replace_all("[가-힣]{2,4}\\s기자", "") %>% # 기자 이름 제거
            str_replace_all("www.","") %>% # 웹사이트 제거.. 근데 사실 필요 없을지도...
            str_replace_all("[^가-힣0-9.]", " ") %>% # 한글, 숫자, 구두점 제외한 모든 문자를 제거
            str_replace_all("\\s{2,10}", "") %>% 
-           str_replace_all("무단 전재 및 재배포 금지", "") %>% 
+           str_replace_all("무단 전재 및|재배포 금지", "") %>% 
            str_replace_all("본 자료는 해당기관에서 제공한 보도 자료입니다", "")
          ) -> raw1
 raw1 %>% 
@@ -100,13 +142,13 @@ raw1 %>%
   # select(news_title)
 
 
-readxl::read_xlsx("coupang_news_rev_filter.xlsx") -> data
+readxl::read_xlsx("coupang_news_rev_filter.xlsx") -> data_filter
+data_filter %>% 
+  filter(구분 == 1) %>% 
+  select(news_title) -> anti_article
+
 data %>% 
-  filter(!구분 == 1) %>% 
-  # filter(주요사건 == 1) %>% 
-  # write_excel_csv("event.csv")
-  select(-주요사건, -구분) -> data
-data
+  anti_join(anti_article) -> data
 
 par(family = "AppleGothic")
 theme_set(theme_gray(base_family = 'AppleGothic'))
@@ -120,26 +162,11 @@ data %>%
   mutate(시기 = ifelse(year(date) %in% c(2011:2015) | year(date) == 2016 & month(date) < 9, "1기", # 로켓배송 합법화 시기 기준으로 1기 설정
                      ifelse(year(date) %in% c(2016:2019) | year(date) == 2020 & month(date) <=6, "2기", "3기")) # 공정위에서 온라인 플랫폼법 제정 추진 발표 기점으로 2기, 그리고 그 이후부터 현재까지가 3기
   ) -> data_coupang
-data_coupang %>% write_excel_csv("coupang_news_4107.csv")
-# 전처리 이후 수작업으로 데이터 선별, 4117 건의 기사 수집
-# 2011년 1월 1일부터 2021년 7월 31일까지 데이터 4107 건
+data_coupang %>% write_excel_csv("coupang_news_4110.csv")
+# 전처리 이후 수작업으로 데이터 선별, 4,135 건의 기사 수집
+# 2011년 1월 1일부터 2021년 7월 31일까지 데이터 4110 건
 
-read_csv("coupang_news_4107.csv") -> data_coupang
-data_coupang %>% 
-  mutate(경쟁상황 = 0,
-           고용및노동이슈 = 0,
-           사회보장정책 = 0,
-           조세정책 = 0,
-           소비자안전 = 0,
-           소비자동맹 = 0,
-           투자자동맹 = 0,
-           기존규제 = 0,
-           정치적동원 = 0,
-           코로나 = 0,
-           갑질상황 = 0) %>% 
-  write_excel_csv("coupang_news_4107_rev.csv")
-
-
+read_csv("coupang_news_4110.csv") -> data_coupang
 data_coupang
 # 시각화 준비 ----------------------------------------------
 
@@ -160,6 +187,10 @@ data_coupang %>%
   geom_text(aes(label = n), vjust = -1) +
   ylim(0, 2200)
 
+data_coupang %>% 
+  filter(시기 == "3기") %>% 
+  arrange(desc(date))
+
 # 기사빈도 시각화 --------------------------------------------
 
 data_coupang %>% 
@@ -173,16 +204,15 @@ data_coupang %>%
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
   ylim(0, 850) +
-  annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
-  annotate("rect", xmin = 23, xmax = 40, ymin = 0, ymax = 780, alpha = .3, fill="#EE7785") +
-  annotate("rect", xmin = 40, xmax = 44, ymin = 0, ymax = 660, alpha = .3, fill="#C89EC4") +
-  annotate("text", x = 12, y = 160, size = 5, label = "1기", family = "AppleGothic") +
-  annotate("text", x = 32, y = 810, size = 5, label = "2기", family = "AppleGothic") +
-  annotate("text", x = 42, y = 690, size = 5, label = "3기", family = "AppleGothic") +
-  annotate("text", x = 22, y = 100, size = 3, label = "80", family = "AppleGothic") +
-  annotate("text", x = 38, y = 750, size = 3, label = "730", family = "AppleGothic") +
-  annotate("text", x = 42, y = 635, size = 3, label = "616", family = "AppleGothic")
-
+  ggplot2::annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
+  ggplot2::annotate("rect", xmin = 23, xmax = 38, ymin = 0, ymax = 780, alpha = .3, fill="#EE7785") +
+  ggplot2::annotate("rect", xmin = 38, xmax = 44, ymin = 0, ymax = 780, alpha = .3, fill="#C89EC4") +
+  ggplot2::annotate("text", x = 12, y = 160, size = 5, label = "1기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 32, y = 810, size = 5, label = "2기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 42, y = 810, size = 5, label = "3기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 22, y = 100, size = 3, label = "80", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 38, y = 750, size = 3, label = "730", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 42, y = 635, size = 3, label = "616", family = "AppleGothic")
 
 # 명사 토크나이징 작업 
 data_coupang %>% 
@@ -199,26 +229,35 @@ read_csv("coupang_word.csv") -> data_word
 
 # 형태소 분석 후 전처리 ----------------------------------------
 
-data_word %>% # 1,176,189 데이터 추출
-  filter(!words %>% str_detect("[:digit:]")) %>%  # 숫자 제거 1,077,777
-  filter(words %>% str_length() > 1) %>% # 한 글자 단어 제거
-  filter(words %>% str_length() <= 10) %>% # 열 글자를 초과하는 단어 제거
+data_word %>% # 1,169,158 데이터 추출
+  filter(!words %>% str_detect("[:digit:]")) %>%  # 숫자 제거 1,070,598
+  filter(words %>% str_length() > 1) %>% # 한 글자 단어 제거 820,809
+  filter(words %>% str_length() <= 10) %>% # 열 글자를 초과하는  단어 제거 817,388
   mutate(words = words %>% 
            str_replace_all("\\.", "")
-  ) -> data_word_prep
+  ) -> data_word_prep # 결과적으로 817,388
 
 # 빈도가 2 이하인 단어는 추출하여 제외
 data_word_prep %>% 
   count(words) %>% 
   filter(!n >= 3) -> anti_word
-data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (788,068 건)
+data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (766,209)
 
 data_word_prep %>% 
   filter(!words %>% str_detect("경향|경향신문|연합인포맥스|동아일보|동아|경향|신문|뉴스|제보하기")) %>% 
-  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기|재배포|홈에서채널|바로가기")) %>% 
+  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기|재배포|홈에서채널|바로가기|무단|전재|저작권|및금지|모바일|^일보$|비동|간음죄|^모태$|리퍼브|비동")) %>% 
+  filter(!words %>% str_detect("팩트체크|팩트|장도리|구독뭐|가위|정신대|달라진웹|극과|못했다|이번|놀자향이네|환생|영원|간음")) %>% 
   mutate(
-         words = ifelse(words %>%  str_detect("네이버"), "네이버", words),
-         words = ifelse(words %>%  str_detect("카카오"), "카카오", words),
+         words = ifelse(words %>%  str_detect("카카오커머스"), "카카오커머스", words),
+         words = ifelse(words %>%  str_detect("카카오톡"), "카카오톡", words),
+         words = ifelse(words %>%  str_detect("카카오엔터"), "카카오엔터프라이즈", words),
+         words = ifelse(words %>%  str_detect("카카오모빌리티"), "카카오모빌리티", words),
+         words = ifelse(words %>%  str_detect("네이버페이"), "네이버페이", words),
+         words = ifelse(words %>%  str_detect("네이버에서채널|네이버채널|네이버구독|네이버에서|유튜브네이버"), "", words), # 네이버 채널 구독하라는 기사 마지막 멘트이기 때문에 제거
+         words = ifelse(words %>%  str_detect("네이버쇼핑"), "네이버쇼핑", words),
+         words = ifelse(words %>%  str_detect("네이버웹툰"), "네이버웹툰", words),
+         words = ifelse(words %>%  str_detect("네이버스토어"), "네이버스토어", words),
+         words = ifelse(words %>%  str_detect("네이버(은|는|이|가|와|도|를|로|보다)"), "네이버", words),
          words = ifelse(words %>%  str_detect("번가"), "11번가", words),
          words = ifelse(words %>%  str_detect("코로나"), "코로나바이러스", words),
          words = ifelse(words %>%  str_detect("확진자"), "확진자", words),
@@ -234,7 +273,7 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("보건교육|보건의료|공중보건|안전보건"), "보건", words),
          words = ifelse(words %>%  str_detect("덕평물류센터"), "쿠팡덕평물류센터", words),
          words = ifelse(words %>%  str_detect("부천물류센터"), "쿠팡부천물류센터", words),
-         words = ifelse(words %>%  str_detect("쿠팡+물류센터"), "쿠팡물류센터", words),
+         words = ifelse(words %>%  str_detect("쿠팡.+물류센터"), "쿠팡물류센터", words),
          
          words = ifelse(words %>%  str_detect("배달의민족|배민"), "배달의민족", words),
          words = ifelse(words %>%  str_detect("쿠팡맨"), "쿠팡맨", words),
@@ -258,50 +297,23 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("인모비"), "인모비", words),
          words = ifelse(words %>%  str_detect("비즈앤라이프"), "비즈앤라이프", words), # 1기 끝
          words = ifelse(words %>%  str_detect("에서구독|구독뭐"), "구독", words), # 2기 시작
+         words = ifelse(words %>%  str_detect("확진된|확진됐다"), "티켓몬스터", words),
+         words = ifelse(words %>%  str_detect("부천|부천에"), "부천", words), 
+         words = ifelse(words %>%  str_detect("총집결|총집결클|총집결흥클"), "총집결", words), 
+         words = ifelse(words %>%  str_detect("목사|목회자"), "목회자", words), # 2기 끝
+         words = ifelse(words %>%  str_detect("멀티미디어"), "멀티미디어", words), # 3기 시작
+         words = ifelse(words %>%  str_detect("이베이"), "이베이코리아", words),
+         words = ifelse(words %>%  str_detect("김범석"), "김범석", words),
          ) %>% 
-  filter(!words %>% str_detect("쿠팡")) -> data_word_prep2
+  filter(!words %>% str_detect("쿠팡")) %>% 
+  filter(words %>% str_length() > 1)-> data_word_prep2
+
+# 빈도 10 이하 단어 정제
 data_word_prep2 %>% 
-  filter(words %>% str_detect("에서구독|구독뭐")) %>% 
-  count(words) %>% arrange(desc(n)) %>% as.data.frame()
-# 단어빈도표 도출 --------------------------------------------
+  count(words) %>% arrange(desc(n)) %>% 
+  filter(!n >= 10) -> anti_join10
 
-data_word_prep2 %>% 
-  filter(시기 == "1기") %>% 
-  count(words) %>% 
-  slice_max(n, n = 50,  with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(words, n), y = n)) +
-  geom_col() +
-  coord_flip() +
-  geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 1기")
-
-data_word_prep2 %>% 
-  filter(시기 == "2기") %>% 
-  count(words) %>% 
-  slice_max(n, n = 50,  with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(words, n), y = n)) +
-  geom_col() +
-  coord_flip() +
-  geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 2기")
-
-data_word_prep2 %>% 
-  filter(시기 == "3기") %>% 
-  count(words) %>% 
-  slice_max(n, n = 50,  with_ties = F) %>% 
-  ggplot(aes(x = fct_reorder(words, n), y = n)) +
-  geom_col() +
-  coord_flip() +
-  geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 3기")
-
-figure_1_1
-figure_1_2
-figure_1_3
-
+data_word_prep2 %>% anti_join(anti_join10) -> data_word_prep2 # 659,773 건으로 정제
 
 # TF-IDF 값 --------------------------------------------
 
@@ -332,7 +344,7 @@ coupang_tf_idf %>%
 
 coupang_count_1기 %>% # 단순빈도분석
   mutate(words = reorder(words, n)) %>%
-  slice_max(n, n = 50,  with_ties = F) %>% 
+  slice_max(n, n = 20,  with_ties = F) %>% 
   ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
@@ -342,7 +354,7 @@ coupang_count_1기 %>% # 단순빈도분석
 
 coupang_count_1기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
-  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  slice_max(tf_idf, n = 20, with_ties = F) %>%
   ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
   geom_col() +
   geom_text(aes(label = round(tf_idf, digit = 5)), hjust = 1) +
@@ -350,13 +362,13 @@ coupang_count_1기 %>% # tf-idf 값 상위 50
   ggtitle("시기별 출현단어 빈도분석: 1기")
 
 coupang_count_1기 %>%
-  slice_max(log_odds, n = 50, with_ties = F) %>%
+  slice_max(log_odds, n = 20, with_ties = F) %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
   geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 1기")
+  xlab("log odds ratio") + ylab("단어") +
+  ggtitle("시기별 출현단어 log odds ratio 분석: 1기")
 
 # 단어 중심으로 통합: 2기
 coupang_tf_idf %>%
@@ -372,7 +384,7 @@ coupang_tf_idf %>%
 
 coupang_count_2기 %>% # 단순빈도분석
   mutate(words = reorder(words, n)) %>%
-  slice_max(n, n = 50,  with_ties = F) %>% 
+  slice_max(n, n = 20,  with_ties = F) %>% 
   ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
@@ -382,7 +394,7 @@ coupang_count_2기 %>% # 단순빈도분석
 
 coupang_count_2기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
-  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  slice_max(tf_idf, n = 20, with_ties = F) %>%
   ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
   geom_col() +
   geom_text(aes(label = tf_idf), hjust = 1) +
@@ -390,13 +402,13 @@ coupang_count_2기 %>% # tf-idf 값 상위 50
   ggtitle("시기별 출현단어 빈도분석: 2기")
 
 coupang_count_2기 %>%
-  slice_max(log_odds, n = 50, with_ties = F) %>%
+  slice_max(log_odds, n = 20, with_ties = F) %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
   geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 2기")
+  xlab("log odds ratio") + ylab("단어") +
+  ggtitle("시기별 출현단어 log odds ratio 분석: 2기")
 
 
 # 단어 중심으로 통합: 3기
@@ -413,7 +425,7 @@ coupang_tf_idf %>%
 
 coupang_count_3기 %>% # 단순빈도분석
   mutate(words = reorder(words, n)) %>%
-  slice_max(n, n = 50,  with_ties = F) %>% 
+  slice_max(n, n = 20,  with_ties = F) %>% 
   ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
@@ -423,7 +435,7 @@ coupang_count_3기 %>% # 단순빈도분석
 
 coupang_count_3기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
-  slice_max(tf_idf, n = 50, with_ties = F) %>%
+  slice_max(tf_idf, n = 20, with_ties = F) %>%
   ggplot(aes(x=tf_idf, y=fct_reorder(words, tf_idf))) +
   geom_col() +
   geom_text(aes(label = tf_idf), hjust = 1) +
@@ -431,22 +443,232 @@ coupang_count_3기 %>% # tf-idf 값 상위 50
   ggtitle("시기별 출현단어 빈도분석: 3기")
 
 coupang_count_3기 %>%
-  slice_max(log_odds, n = 50, with_ties = F) %>%
+  slice_max(log_odds, n = 20, with_ties = F) %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
   geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 3기")
+  xlab("log odds ratio") + ylab("단어") +
+  ggtitle("시기별 출현단어 log odds ratio 분석: 3기")
 
 # 단어문서행렬만들기 
-coupang_tf_idf %>% 
-  cast_dtm(document = 시기,
+
+
+# 1기 dtm ----------------------------------------------
+
+data_word_prep2 %>% 
+  filter(시기 == "1기") %>% 
+  count(id, words, sort = T) %>% 
+  bind_tf_idf(words, id, n) -> coupang_tf_idf_1기
+coupang_tf_idf_1기
+
+coupang_tf_idf_1기 %>% 
+  cast_dtm(document = id,
            term = words,
-           value = n) -> coupang_dtm
-tm::inspect(coupang_dtm)
-coupang_tf_idf %>%
-  cast_dtm(document =  시기,
+           value = n) -> coupang_dtm_1기
+tm::inspect(coupang_dtm_1기)
+coupang_tf_idf_1기 %>%
+  cast_dtm(document =  id,
            term = words,
-           value = tf_idf) -> coupang_dtm_tf_idf
-tm::inspect(coupang_dtm_tf_idf)
+           value = tf_idf) -> coupang_dtm_tf_idf_1기
+tm::inspect(coupang_dtm_tf_idf_1기)
+
+
+# 토픽모델링_1기 -----------------------------------------------
+
+
+topics <- c(2:20)
+coupang_lda_1기 <- topics %>%
+  future_map(LDA, x = coupang_dtm_1기, control = list(seed = 1234))
+
+coupang_lda_prep_1기 <- tibble(k = topics,
+                         perplex = map_dbl(coupang_lda_1기, 
+                                           perplexity))
+coupang_lda_prep_1기
+
+coupang_lda_prep_1기 %>%
+  ggplot(mapping = aes(x = k, 
+                       y = perplex)) +
+  geom_point() +
+  geom_line() +
+  ggplot2::geom_vline(xintercept = 9, size = 1, color = 'red', alpha = 0.7, linetype = 2)
+coupang_lda_1기 <- LDA(coupang_dtm_1기, k=9, control=list(seed=1234))
+
+str(coupang_lda_1기)
+
+coupang_topic_1기 <- coupang_lda_1기 %>%
+  tidy(matrix = "beta") 
+
+coupang_topic_1기 %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 20) %>%
+  ungroup() %>%
+  arrange(topic, -beta) -> coupang_topic_terms_1기
+
+coupang_topic_terms_1기 %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(mapping = aes(x = beta, 
+                       y = term, 
+                       fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+
+coupang_wide_1기 <- coupang_topic_terms_1기 %>%
+  mutate(topic = paste0("topic", topic)) %>% # 토픽번호 수정 1->topic1
+  pivot_wider(names_from = topic, 
+              values_from = beta) %>%
+  arrange(desc(topic1, topic2, topic3, topic4, topic5, topic6, topic7))
+
+coupang_wide_1기 %>%  print(n=40)
+
+terms(coupang_lda_1기, 20) -> lda_1
+lda_1 %>% as_tibble() %>% write_excel_csv("lda_1.csv")
+
+
+
+# 2기 dtm ----------------------------------------------
+
+data_word_prep2 %>% 
+  filter(시기 == "2기") %>% 
+  count(id, words, sort = T) %>% 
+  bind_tf_idf(words, id, n) -> coupang_tf_idf_2기
+coupang_tf_idf_2기
+
+coupang_tf_idf_2기 %>% 
+  cast_dtm(document = id,
+           term = words,
+           value = n) -> coupang_dtm_2기
+tm::inspect(coupang_dtm_2기)
+coupang_tf_idf_2기 %>%
+  cast_dtm(document =  id,
+           term = words,
+           value = tf_idf) -> coupang_dtm_tf_idf_2기
+tm::inspect(coupang_dtm_tf_idf_2기)
+
+
+# 토픽모델링_2기 -----------------------------------------------
+
+
+topics <- c(2:20)
+coupang_lda_2기 <- topics %>%
+  future_map(LDA, x = coupang_dtm_2기, control = list(seed = 1234))
+
+coupang_lda_prep_2기 <- tibble(k = topics,
+                         perplex = map_dbl(coupang_lda_2기, 
+                                           perplexity))
+coupang_lda_prep_2기
+
+coupang_lda_prep_2기 %>%
+  ggplot(mapping = aes(x = k, 
+                       y = perplex)) +
+  geom_point() +
+  geom_line() +
+  ggplot2::geom_vline(xintercept = 8, size = 1, color = 'red', alpha = 0.7, linetype = 2)
+
+coupang_lda_2기 <- LDA(coupang_dtm_2기, k=8, control=list(seed=1234))
+
+str(coupang_lda_2기)
+
+coupang_topic_2기 <- coupang_lda_2기 %>%
+  tidy(matrix = "beta") 
+
+coupang_topic_2기 %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 20) %>%
+  ungroup() %>%
+  arrange(topic, -beta) -> coupang_topic_terms_2기
+
+coupang_topic_terms_2기 %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(mapping = aes(x = beta, 
+                       y = term, 
+                       fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+
+coupang_wide_2기 <- coupang_topic_terms_2기 %>%
+  mutate(topic = paste0("topic", topic)) %>% # 토픽번호 수정 1->topic1
+  pivot_wider(names_from = topic, 
+              values_from = beta) %>%
+  arrange(desc(topic1, topic2, topic3, topic4, topic5))
+
+coupang_wide_2기 %>%  print(n=40)
+
+terms(coupang_lda_2기, 20) -> lda_2
+lda_2 %>% as_tibble() %>% write_excel_csv("lda_2.csv")
+
+
+
+# 3기 dtm ----------------------------------------------
+
+data_word_prep2 %>% 
+  filter(시기 == "3기") %>% 
+  count(id, words, sort = T) %>% 
+  bind_tf_idf(words, id, n) -> coupang_tf_idf_3기
+coupang_tf_idf_3기
+
+coupang_tf_idf_3기 %>% 
+  cast_dtm(document = id,
+           term = words,
+           value = n) -> coupang_dtm_3기
+tm::inspect(coupang_dtm_3기)
+coupang_tf_idf_3기 %>%
+  cast_dtm(document =  id,
+           term = words,
+           value = tf_idf) -> coupang_dtm_tf_idf_3기
+tm::inspect(coupang_dtm_tf_idf_3기)
+
+
+# 토픽모델링_3기 -----------------------------------------------
+
+
+topics <- c(2:20)
+coupang_lda_3기 <- topics %>%
+  future_map(LDA, x = coupang_dtm_3기, control = list(seed = 1234))
+
+coupang_lda_prep_3기 <- tibble(k = topics,
+                         perplex = map_dbl(coupang_lda_3기, 
+                                           perplexity))
+coupang_lda_prep_3기
+
+coupang_lda_prep_3기 %>%
+  ggplot(mapping = aes(x = k, 
+                       y = perplex)) +
+  geom_point() +
+  geom_line() +
+  ggplot2::geom_vline(xintercept = 7, size = 1, color = 'red', alpha = 0.7, linetype = 2)
+
+coupang_lda_8_3기 <- LDA(coupang_dtm_3기, k=7, control=list(seed=1234))
+
+str(coupang_lda_8_3기)
+
+coupang_topic_8_3기 <- coupang_lda_8_3기 %>%
+  tidy(matrix = "beta") 
+
+coupang_topic_8_3기 %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 20) %>%
+  ungroup() %>%
+  arrange(topic, -beta) -> coupang_topic_terms_3기
+
+coupang_topic_terms_3기 %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(mapping = aes(x = beta, 
+                       y = term, 
+                       fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+
+coupang_wide_3기 <- coupang_topic_terms_3기 %>%
+  mutate(topic = paste0("topic", topic)) %>% # 토픽번호 수정 1->topic1
+  pivot_wider(names_from = topic, 
+              values_from = beta) %>%
+  arrange(desc(topic1, topic2, topic3, topic4, topic5))
+
+coupang_wide_3기 %>%  print(n=40)
+
+terms(coupang_lda_8_3기, 20) -> lda_3
+lda_3 %>% as_tibble() %>% write_excel_csv("lda_3.csv")
