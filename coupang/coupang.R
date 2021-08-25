@@ -20,8 +20,8 @@ citation("tidylo")
 citation("tidytext")
 citation("KoNLP")
 citation("NIADic")
-citation("RSelenium")
 citation("rvest")
+citation("topicmodels")
 
 # R Studio 버전 
 RStudio.Version()
@@ -199,7 +199,7 @@ data_coupang %>%
   geom_col() +
   ylab("기사빈도수") +
   xlab("분기 (2011년 1분기 ~ 2021년 7월 기준)") +
-  ggtitle("분기별 기사 빈도수 (검색어: 쿠팡)") +
+  # ggtitle("분기별 기사 빈도수 (검색어: 쿠팡)") +
   theme_minimal(base_family = "AppleGothic") +
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
@@ -207,13 +207,12 @@ data_coupang %>%
   ggplot2::annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
   ggplot2::annotate("rect", xmin = 23, xmax = 38, ymin = 0, ymax = 780, alpha = .3, fill="#EE7785") +
   ggplot2::annotate("rect", xmin = 38, xmax = 44, ymin = 0, ymax = 780, alpha = .3, fill="#C89EC4") +
-  ggplot2::annotate("text", x = 12, y = 160, size = 5, label = "1기", family = "AppleGothic") +
-  ggplot2::annotate("text", x = 32, y = 810, size = 5, label = "2기", family = "AppleGothic") +
-  ggplot2::annotate("text", x = 42, y = 810, size = 5, label = "3기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 12, y = 160, size = 3, label = "1기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 32, y = 810, size = 3, label = "2기", family = "AppleGothic") +
+  ggplot2::annotate("text", x = 42, y = 810, size = 3, label = "3기", family = "AppleGothic") +
   ggplot2::annotate("text", x = 22, y = 100, size = 3, label = "80", family = "AppleGothic") +
   ggplot2::annotate("text", x = 38, y = 750, size = 3, label = "730", family = "AppleGothic") +
   ggplot2::annotate("text", x = 42, y = 635, size = 3, label = "616", family = "AppleGothic")
-
 # 명사 토크나이징 작업 
 data_coupang %>% 
   as_tibble() %>% 
@@ -349,8 +348,8 @@ coupang_count_1기 %>% # 단순빈도분석
   geom_col() +
   coord_flip() +
   geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 1기")
+  xlab("") + ylab("") -> figure_4_1
+  # ggtitle("시기별 출현단어 빈도분석: 1기")
 
 coupang_count_1기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
@@ -366,9 +365,10 @@ coupang_count_1기 %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
-  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("log odds ratio") + ylab("단어") +
-  ggtitle("시기별 출현단어 log odds ratio 분석: 1기")
+  geom_text(aes(label = round(log_odds, digit = 4)), hjust = 1) +
+  xlab("") + ylab("") -> figure_4_2
+  # xlab("log odds ratio") + ylab("단어") +
+  # ggtitle("시기별 출현단어 log odds ratio 분석: 1기")
 
 # 단어 중심으로 통합: 2기
 coupang_tf_idf %>%
@@ -389,8 +389,9 @@ coupang_count_2기 %>% # 단순빈도분석
   geom_col() +
   coord_flip() +
   geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 2기")
+  xlab("") + ylab("") -> figure_4_3
+  # xlab("단어") + ylab("빈도") +
+  # ggtitle("시기별 출현단어 빈도분석: 2기")
 
 coupang_count_2기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
@@ -406,9 +407,11 @@ coupang_count_2기 %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
-  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("log odds ratio") + ylab("단어") +
-  ggtitle("시기별 출현단어 log odds ratio 분석: 2기")
+  geom_text(aes(label = round(log_odds, digit = 4)), hjust = 1) +
+  xlab("") + ylab("") -> figure_4_4
+  # geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
+  # xlab("log odds ratio") + ylab("단어") +
+  # ggtitle("시기별 출현단어 log odds ratio 분석: 2기")
 
 
 # 단어 중심으로 통합: 3기
@@ -430,8 +433,9 @@ coupang_count_3기 %>% # 단순빈도분석
   geom_col() +
   coord_flip() +
   geom_text(aes(label = n), hjust = 1) +
-  xlab("단어") + ylab("빈도") +
-  ggtitle("시기별 출현단어 빈도분석: 3기")
+  xlab("") + ylab("") -> figure_4_5
+  # xlab("단어") + ylab("빈도") +
+  # ggtitle("시기별 출현단어 빈도분석: 3기")
 
 coupang_count_3기 %>% # tf-idf 값 상위 50
   mutate(word = reorder(words, tf_idf)) %>%
@@ -447,9 +451,18 @@ coupang_count_3기 %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
-  geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
-  xlab("log odds ratio") + ylab("단어") +
-  ggtitle("시기별 출현단어 log odds ratio 분석: 3기")
+  geom_text(aes(label = round(log_odds, digit = 4)), hjust = 1) +
+  xlab("") + ylab("") -> figure_4_6
+  # geom_text(aes(label = round(log_odds, digit = 5)), hjust = 1) +
+  # xlab("log odds ratio") + ylab("단어") +
+  # ggtitle("시기별 출현단어 log odds ratio 분석: 3기")
+
+figure_4_1
+figure_4_2
+figure_4_3
+figure_4_4
+figure_4_5
+figure_4_6
 
 # 단어문서행렬만들기 
 
@@ -507,6 +520,14 @@ coupang_topic_1기 %>%
 
 coupang_topic_terms_1기 %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
+  mutate(topic = ifelse(topic == 1, "Topic1 투자자",
+                        ifelse(topic == 2, "Topic2 투자자: 참을성 있는 자본",
+                               ifelse(topic == 3, "Topic3 경쟁사: 소셜커머스",
+                                      ifelse(topic == 4, "Topic4 규제",
+                                             ifelse(topic == 5, "Topic5 경쟁상황",
+                                                    ifelse(topic == 6, "Topic6 소비자: 배송서비스",
+                                                           ifelse(topic == 7, "Topic7 소비자서비스",
+                                                                  ifelse(topic == 8, "Topic8 소비자서비스", "Topic9 플랫폼 광고"))))))))) %>%   
   ggplot(mapping = aes(x = beta, 
                        y = term, 
                        fill = factor(topic))) +
@@ -581,6 +602,14 @@ coupang_topic_2기 %>%
 
 coupang_topic_terms_2기 %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
+  mutate(topic = ifelse(topic == 1, "Topic1 고용 및 노동문제",
+                        ifelse(topic == 2, "Topic2 소비자: 배송 서비스",
+                               ifelse(topic == 3, "Topic3 물류센터 집단감염",
+                                      ifelse(topic == 4, "Topic4 물류센터 집단감염2",
+                                             ifelse(topic == 5, "Topic5 경쟁상황: 온라인 시장 확장",
+                                                    ifelse(topic == 6, "Topic6 투자자",
+                                                           ifelse(topic == 7, "Topic7 경쟁상황: 플랫폼",
+                                                                  ifelse(topic == 8, "Topic8 코로나19", "Topic9"))))))))) %>%  
   ggplot(mapping = aes(x = beta, 
                        y = term, 
                        fill = factor(topic))) +
@@ -655,6 +684,14 @@ coupang_topic_8_3기 %>%
 
 coupang_topic_terms_3기 %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
+  mutate(topic = ifelse(topic == 1, "Topic1 경쟁상황",
+                        ifelse(topic == 2, "Topic2 물류센터 화재",
+                               ifelse(topic == 3, "Topic3 소비자: 배송서비스",
+                                      ifelse(topic == 4, "Topic4 노동 및 고용문제",
+                                             ifelse(topic == 5, "Topic5 쿠팡이츠",
+                                                    ifelse(topic == 6, "Topic6 노동자 사망사건 청문회",
+                                                           ifelse(topic == 7, "Topic7 미 증시 상장",
+                                                                  ifelse(topic == 8, "Topic8 공격적 채용", "Topic9"))))))))) %>%  
   ggplot(mapping = aes(x = beta, 
                        y = term, 
                        fill = factor(topic))) +
@@ -672,3 +709,24 @@ coupang_wide_3기 %>%  print(n=40)
 
 terms(coupang_lda_8_3기, 20) -> lda_3
 lda_3 %>% as_tibble() %>% write_excel_csv("lda_3.csv")
+
+
+
+# 갑질, 불공정거래 단어빈도 추이
+data_word_prep2 %>% 
+  filter(words %>% str_detect("갑질|불공정")) %>%
+  mutate(words = ifelse(words %>%  str_detect("갑질"), "갑질", words)) %>% 
+  count(분기, words) %>% 
+  ggplot2::ggplot(aes(x = 분기, y = n)) +
+  theme_minimal(base_family = "AppleGothic") +
+  theme(legend.position = "none") +
+  ylab("출현 빈도") +
+  xlab("2010년 ~ 2021년 7월") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  geom_col() +
+  geom_abline(slope = 1) +
+  ggplot2::annotate("rect", xmin = 22, xmax = 28, ymin = 0, ymax = 50, alpha = .3, fill="#C89EC4") +
+  ggplot2::annotate("text", x = 25, y = 45, size = 7, label = "3기", family = "AppleGothic")
+  
