@@ -18,10 +18,10 @@ Keywords: platform business regulation, policy change, text mining, topic modeli
 
 ## Authors
 
-김주상(Kim, Ju Sang) `First Author`
-김하늘(Kim, Ha Neul) `Co-Author`
-송가영(Song, Ga Young) `Co-Author`
-오태성(Oh, Tae Sung) `Co-Author`
+김주상(Kim, Ju Sang) `First Author` \s
+김하늘(Kim, Ha Neul) `Co-Author` \s
+송가영(Song, Ga Young) `Co-Author` \s
+오태성(Oh, Tae Sung) `Co-Author` \s
 박아름(Park, Ah Reum) `corresponding author`
 
 
@@ -52,7 +52,7 @@ pacman::p_load(
 )
 ```
 
-> 분석에는 `tidyverse`를 포함한 11종의 패키지가 사용되었다.
+> 분석에는 `tidyverse`를 포함한 11종의 패키지가 사용되었습니다.
 
 ### 패키지 인용정보 확인
 
@@ -110,7 +110,7 @@ buildDictionary(ext_dic = "NIADic",
 stopping_ko_end=regex("입니다$|이다$")
 stopping_ko=tibble(단어=c('이','가','은','는'))
 ```
-형태소사전은 `NIADic`을 사용하였다. 또한 사용사 사전은 `my_dic`에 탑재하였으며, 불용어사전의 경우 전처리 코드를 통해 불용어를 처리했기에 초기 불용어사전은 기본적인 조사와 어미만 탑재하였습니다.
+형태소사전은 `NIADic`을 사용하였습니다. 또한 사용사 사전은 `my_dic`에 탑재하였으며, 불용어사전의 경우 전처리 코드를 통해 불용어를 처리했기에 초기 불용어사전은 기본적인 조사와 어미만 탑재하였습니다.
 
 ## 데이터 불러오기
 ```{r}
@@ -150,7 +150,7 @@ raw1 %>%
 
 ## 형태소 분석
 `KoNLP` 패키지 내장함수 `extractNoun`과 `tidytext` 내장함수 `unnest_tokens` 를 활용해 형태소분석을 실시, 형태소 분석 이후 2차 전처리 과정을 수행하였습니다.
-형태소 분석 결과 1,169,158 건의 데이터를 추출하였고, 이 중 숫자, 한 글자 단어, 열 글자 초과 단어를 제거하여 817,388 건의 명사를 필터링하였고, 빈도 2 이하 단어를 분석에서 제외한 후 불용어 처리 및 관련단어 통합 등을 진행하였습니다. 이후 "쿠팡"이라는 키워드를 분석에서 제외한 후 최종적으로 출현빈도 10 이하의 단어를 필터링 하였습니다. 결과적으로 659,773 건의 명사를 추출할 수 있었습니다.
+형태소 분석 결과 1,169,158 건의 데이터를 추출하였고, 이 중 숫자, 한 글자 단어, 열 글자 초과 단어를 제거하여 817,388 건의 명사를 필터링, 이후 빈도 2 이하 단어를 분석에서 제외한 후 불용어 처리 및 관련단어 통합 등을 진행하였습니다. "쿠팡"이라는 키워드를 분석에서 제외한 후 출현빈도 10 이하의 단어를 필터링 하였습니다. 결과적으로 659,773 건의 명사를 추출할 수 있었습니다.
 
 ## 분석결과
 
