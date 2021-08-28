@@ -202,7 +202,10 @@ data_coupang %>%
   # ggtitle("분기별 기사 빈도수 (검색어: 쿠팡)") +
   theme_minimal(base_family = "AppleGothic") +
   theme(legend.position = "none") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  xlab("분기 2011년 1분기 ~ 2021년 7월 기준") +
   ylim(0, 850) +
   ggplot2::annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
   ggplot2::annotate("rect", xmin = 23, xmax = 38, ymin = 0, ymax = 780, alpha = .3, fill="#EE7785") +
@@ -605,11 +608,11 @@ coupang_topic_terms_2기 %>%
   mutate(topic = ifelse(topic == 1, "Topic1 고용 및 노동문제",
                         ifelse(topic == 2, "Topic2 소비자: 배송 서비스",
                                ifelse(topic == 3, "Topic3 물류센터 집단감염",
-                                      ifelse(topic == 4, "Topic4 물류센터 집단감염2",
+                                      ifelse(topic == 4, "Topic4 물류센터 집단감염: 수도권 전파",
                                              ifelse(topic == 5, "Topic5 경쟁상황: 온라인 시장 확장",
                                                     ifelse(topic == 6, "Topic6 투자자",
                                                            ifelse(topic == 7, "Topic7 경쟁상황: 플랫폼",
-                                                                  ifelse(topic == 8, "Topic8 코로나19", "Topic9"))))))))) %>%  
+                                                                  ifelse(topic == 8, "Topic8 류센터 집단감염: 등교 중지", "Topic9"))))))))) %>%  
   ggplot(mapping = aes(x = beta, 
                        y = term, 
                        fill = factor(topic))) +
