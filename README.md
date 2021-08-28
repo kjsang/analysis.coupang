@@ -245,6 +245,6 @@ data_word_prep2 %>%
 
 ### 감사의 말
 
-텍스트 전처리 과정에서 아낌없는 조언을 해주신 SK Innovation의 [https://byeongkijeong.github.io/aboutme/](정병기 박사)님과 [https://github.com/encaion](김승욱) RLOHA 대표님께 감사의 뜻을 전합니다. 
+텍스트 전처리 과정에서 아낌없는 조언을 해주신 SK Innovation의 [정병기 박사](https://byeongkijeong.github.io/aboutme/)님과 [김승욱 RLOHA 대표](https://github.com/encaion)님께 감사의 뜻을 전합니다. 
 
 논문 완성에 애정어린 소중한 의견 주신 장현주 교수님께 한없는 감사의 마음을 전합니다.
