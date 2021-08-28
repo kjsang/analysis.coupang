@@ -173,7 +173,7 @@ raw1 %>%
 # … with 17,846 more rows
 ```
 
-### LDA 분석 (토픽모델링)
+### LDA 분석 (토픽모델링, 1기 기준)
 
 ```{R}
 Formal class 'LDA_VEM' [package "topicmodels"] with 14 slots
