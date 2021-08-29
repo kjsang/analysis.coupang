@@ -22,12 +22,11 @@ citation("KoNLP")
 citation("NIADic")
 citation("rvest")
 citation("topicmodels")
+citation("tm")
+citation("furrr")
 
 # R Studio 버전 
 RStudio.Version()
-
-# 폰트 설정 -----------------------------------------------
-
 
 
 # 사전 불러오기 ---------------------------------------------
@@ -64,7 +63,15 @@ stopping_ko=tibble(단어=c('이','가','은','는'))
 
 
 
+# 데이터 불러오기 --------------------------------------------
+
+
 read_csv("coupang_news.csv") -> coupang
+
+
+# 데이터 전처리 ---------------------------------------------
+
+# 데이터 중 기사에 포함된 광고, 신문사 이름, 핫토픽 등 제거 
 coupang %>% 
   select(date, news, news_title, news_content, url) %>% 
   mutate(news_content = news_content %>% 
@@ -114,6 +121,8 @@ coupang %>%
            str_replace_all("무단 전재 및|재배포 금지", "") %>% 
            str_replace_all("본 자료는 해당기관에서 제공한 보도 자료입니다", "")
          ) -> raw1
+
+# 데이터 중 기사제목을 기준으로 광고기사와 연관성이 낮은 기사를 제거
 raw1 %>% 
   filter(news %in% c("경향신문", "연합뉴스", "동아일보")) %>% 
   mutate(news_title = news_title %>% 
@@ -141,30 +150,35 @@ raw1 %>%
   # write_excel_csv("coupang_news_rev.csv") # 7356 건의 기사 중 전처리를 통해 4145 건의 기사 데이터셋 생성
   # select(news_title)
 
-
+### 내용분석을 통한 기사 필터링 결과를 데이터에 적용
 readxl::read_xlsx("coupang_news_rev_filter.xlsx") -> data_filter
 data_filter %>% 
   filter(구분 == 1) %>% 
   select(news_title) -> anti_article
 
-data %>% 
-  anti_join(anti_article) -> data
+### 필터링 적용
+data %>%  anti_join(anti_article) -> data
 
+### 분석을 위한 폰트 지정 (MacOS이기 때문에 폰트가 깨진다)
 par(family = "AppleGothic")
 theme_set(theme_gray(base_family = 'AppleGothic'))
+
+
+# 시기 구분 --------------------------------------------
 
 data %>% 
   mutate(date = as_date(date),
          id = 1:length(news_content)) %>% 
-  filter(!year(date) == 2010) %>% 
+  filter(!year(date) == 2010) %>% # 2010년에 해당하는 기사는 모두 광고기사이기에 제외
   select(id, date, news, news_title, news_content) %>% 
-  mutate(분기 = paste0(as.character(quarter(date, with_year = T)), "분기")) %>% 
+  mutate(분기 = paste0(as.character(quarter(date, with_year = T)), "분기")) %>% # 분기별 데이터 빈도 파악 위해 분기 변수를 추가하였음 
   mutate(시기 = ifelse(year(date) %in% c(2011:2015) | year(date) == 2016 & month(date) < 9, "1기", # 로켓배송 합법화 시기 기준으로 1기 설정
                      ifelse(year(date) %in% c(2016:2019) | year(date) == 2020 & month(date) <=6, "2기", "3기")) # 공정위에서 온라인 플랫폼법 제정 추진 발표 기점으로 2기, 그리고 그 이후부터 현재까지가 3기
   ) -> data_coupang
 data_coupang %>% write_excel_csv("coupang_news_4110.csv")
 # 전처리 이후 수작업으로 데이터 선별, 4,135 건의 기사 수집
 # 2011년 1월 1일부터 2021년 7월 31일까지 데이터 4110 건
+
 
 read_csv("coupang_news_4110.csv") -> data_coupang
 data_coupang
@@ -186,10 +200,6 @@ data_coupang %>%
   ggtitle("시기별 기사 빈도수 (검색어: 쿠팡)") +
   geom_text(aes(label = n), vjust = -1) +
   ylim(0, 2200)
-
-data_coupang %>% 
-  filter(시기 == "3기") %>% 
-  arrange(desc(date))
 
 # 기사빈도 시각화 --------------------------------------------
 
@@ -247,8 +257,8 @@ data_word_prep %<>% anti_join(anti_word) # anti_join()으로 제외 (766,209)
 
 data_word_prep %>% 
   filter(!words %>% str_detect("경향|경향신문|연합인포맥스|동아일보|동아|경향|신문|뉴스|제보하기")) %>% 
-  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기|재배포|홈에서채널|바로가기|무단|전재|저작권|및금지|모바일|^일보$|비동|간음죄|^모태$|리퍼브|비동")) %>% 
-  filter(!words %>% str_detect("팩트체크|팩트|장도리|구독뭐|가위|정신대|달라진웹|극과|못했다|이번|놀자향이네|환생|영원|간음")) %>% 
+  filter(!words %>% str_detect("지난해|이상|기준|올해|때문|경우|바탕|보기|소개|기획|선별|처리|반면|단계|오늘|여부|방침|선정|아이|사이|대비|전체|포함|생각|거리|누적|지난해|하기|들이|서울|경기|재배포|홈에서채널|바로가기|무단|전재|저작권|및금지|모바일|^일보$|비동|간음죄|^모태$|리퍼브|비동")) %>% #불용어 처리
+  filter(!words %>% str_detect("팩트체크|팩트|장도리|구독뭐|가위|정신대|달라진웹|극과|못했다|이번|놀자향이네|환생|영원|간음")) %>% # 불용어 처리2
   mutate(
          words = ifelse(words %>%  str_detect("카카오커머스"), "카카오커머스", words),
          words = ifelse(words %>%  str_detect("카카오톡"), "카카오톡", words),
@@ -287,7 +297,7 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("쿠팡이츠"), "쿠팡이츠", words),
          words = ifelse(words %>%  str_detect("쿠팡플렉스"), "쿠팡플렉스", words),
          words = ifelse(words %>%  str_detect("쿠팡(은|는|이|가)$"), "쿠팡", words),
-         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words), # 1기 시작 
+         words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words), 
          words = ifelse(words %>%  str_detect("페이스북"), "페이스북", words),
          words = ifelse(words %>%  str_detect("티몬|티켓몬스터"), "티켓몬스터", words),
          words = ifelse(words %>%  str_detect("그루폰"), "그루폰코리아", words),
@@ -297,13 +307,13 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("코이카"), "한국국제협력단", words),
          words = ifelse(words %>%  str_detect("어니스트"), "어니스트비", words),
          words = ifelse(words %>%  str_detect("인모비"), "인모비", words),
-         words = ifelse(words %>%  str_detect("비즈앤라이프"), "비즈앤라이프", words), # 1기 끝
-         words = ifelse(words %>%  str_detect("에서구독|구독뭐"), "구독", words), # 2기 시작
+         words = ifelse(words %>%  str_detect("비즈앤라이프"), "비즈앤라이프", words), 
+         words = ifelse(words %>%  str_detect("에서구독|구독뭐"), "구독", words), 
          words = ifelse(words %>%  str_detect("확진된|확진됐다"), "티켓몬스터", words),
          words = ifelse(words %>%  str_detect("부천|부천에"), "부천", words), 
          words = ifelse(words %>%  str_detect("총집결|총집결클|총집결흥클"), "총집결", words), 
-         words = ifelse(words %>%  str_detect("목사|목회자"), "목회자", words), # 2기 끝
-         words = ifelse(words %>%  str_detect("멀티미디어"), "멀티미디어", words), # 3기 시작
+         words = ifelse(words %>%  str_detect("목사|목회자"), "목회자", words),
+         words = ifelse(words %>%  str_detect("멀티미디어"), "멀티미디어", words), 
          words = ifelse(words %>%  str_detect("이베이"), "이베이코리아", words),
          words = ifelse(words %>%  str_detect("김범석"), "김범석", words),
          ) %>% 
