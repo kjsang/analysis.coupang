@@ -18,7 +18,7 @@ Keywords: platform business regulation, policy change, text mining, topic modeli
 
 ## Authors
 
-김주상(Kim, Ju Sang) `First Author`   
+김주상(Kim, Ju Sang) `First Co-Author`   
 김하늘(Kim, Ha Neul) `Co-Author`   
 송가영(Song, Ga Young) `Co-Author`   
 오태성(Oh, Tae Sung) `Co-Author`   
