@@ -22,7 +22,7 @@ Keywords: platform business regulation, policy change, text mining, topic modeli
 김하늘(Kim, Ha Neul) `Co-Author`   
 송가영(Song, Ga Young) `Co-Author`   
 오태성(Oh, Tae Sung) `Co-Author`   
-박아름(Park, Ah Reum) `corresponding author`  
+박아름(Park, Ah Reum) `Corresponding Author`  
 
 
 ## Requirements
