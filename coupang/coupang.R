@@ -318,7 +318,7 @@ data_word_prep %>%
          words = ifelse(words %>%  str_detect("김범석"), "김범석", words),
          ) %>% 
   filter(!words %>% str_detect("쿠팡")) %>% 
-  filter(words %>% str_length() > 1)-> data_word_prep2
+  filter(words %>% str_length() > 1)-> data_word_prep2 # 700,392 건으로 정제
 
 # 빈도 10 이하 단어 정제
 data_word_prep2 %>% 
@@ -477,6 +477,38 @@ figure_4_4
 figure_4_5
 figure_4_6
 
+# 빈도분석 및 가중로그오즈비 테이블로 시각화
+coupang_count_1기 %>% 
+  slice_max(n, n = 20, with_ties = F) %>% 
+  select(words, n) %>% 
+  rename(단어_1기_빈도 = words, 빈도_1기 = n) %>% 
+  bind_cols(
+    coupang_count_1기 %>%
+      slice_max(log_odds, n = 20, with_ties = F) %>% 
+      select(words, log_odds) %>% 
+      rename(단어_1기_가중로그승산비 = words, 가중로그승산비_1기 = log_odds)
+  ) %>% 
+    bind_cols(
+      coupang_count_2기 %>% 
+  slice_max(n, n = 20, with_ties = F) %>% 
+  select(words, n) %>% 
+  rename(단어_2기_빈도 = words, 빈도_2기 = n),
+  coupang_count_2기 %>%
+      slice_max(log_odds, n = 20, with_ties = F) %>% 
+      select(words, log_odds) %>% 
+      rename(단어_2기_가중로그승산비 = words, 가중로그승산비_2기 = log_odds),
+        coupang_count_3기 %>% 
+  slice_max(n, n = 20, with_ties = F) %>% 
+  select(words, n) %>% 
+  rename(단어_3기_빈도 = words, 빈도_3기 = n),
+  coupang_count_3기 %>%
+      slice_max(log_odds, n = 20, with_ties = F) %>% 
+      select(words, log_odds) %>% 
+      rename(단어_3기_가중로그승산비 = words, 가중로그승산비_3기 = log_odds)
+    ) %>% 
+  write_excel_csv("빈도_가중로그승산비_테이블.csv")
+
+
 # 단어문서행렬만들기 
 
 
@@ -530,6 +562,10 @@ coupang_topic_1기 %>%
   slice_max(beta, n = 20) %>%
   ungroup() %>%
   arrange(topic, -beta) -> coupang_topic_terms_1기
+
+coupang_topic_1기 %>% 
+  write_excel_csv("coupang_topic_1기")
+read_csv("coupang_topic_1기") -> coupang_topic_1기 # 중간 저장
 
 coupang_topic_terms_1기 %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
@@ -613,6 +649,10 @@ coupang_topic_2기 %>%
   ungroup() %>%
   arrange(topic, -beta) -> coupang_topic_terms_2기
 
+coupang_topic_2기 %>% 
+  write_excel_csv("coupang_topic_2기")
+read_csv("coupang_topic_2기") -> coupang_topic_2기 # 중간 저장
+
 coupang_topic_terms_2기 %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
   mutate(topic = ifelse(topic == 1, "Topic1 고용 및 노동문제",
@@ -680,14 +720,18 @@ coupang_lda_prep_3기 %>%
                        y = perplex)) +
   geom_point() +
   geom_line() +
-  ggplot2::geom_vline(xintercept = 7, size = 1, color = 'red', alpha = 0.7, linetype = 2)
+  ggplot2::geom_vline(xintercept = 8, size = 1, color = 'red', alpha = 0.7, linetype = 2)
 
-coupang_lda_8_3기 <- LDA(coupang_dtm_3기, k=7, control=list(seed=1234))
+coupang_lda_8_3기 <- LDA(coupang_dtm_3기, k=8, control=list(seed=1234))
 
 str(coupang_lda_8_3기)
 
 coupang_topic_8_3기 <- coupang_lda_8_3기 %>%
   tidy(matrix = "beta") 
+
+coupang_topic_8_3기 %>% 
+  write_excel_csv("coupang_topic_8_3기")
+read_csv("coupang_topic_8_3기") -> coupang_topic_8_3기 # 중간 저장
 
 coupang_topic_8_3기 %>%
   group_by(topic) %>%

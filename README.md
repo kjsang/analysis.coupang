@@ -1,17 +1,17 @@
 # Title
 플랫폼 기업의 규제대응전략과 정책변동: 쿠팡(Coupang) 사례를 중심으로  
-Policy Changes and Platform Business Regulatory Response Strategies: Focusing on Coupang
+Platform Business Regulatory Response Strategies and Policy Changes: Focusing on Coupang
 
 ## Abstract
 
 ### English
-This study is the foundation for exploring the regulatory response strategies of platform businesses and the factors affecting policy changes in the Korean context. This study focuses on the `investor-platform-consumer alliance` with `Flashpoint` as a factor that affects policy changes in regulations towards platform business. In order to analyze the regulatory response strategy of platform business and the policy change process of regulation toward platform business, this study conducts a text mining technique, `word appearance frequency`, `weighted log Odds ratio`, and a `topic modeling` analysis. The analysis confirmed that as the company grows with the support of patient capital, the alliance between platform business and consumers is strengthened to a certain level. However, the frequent advent of `Flashpoint` has since loosened the alliance with consumers and broken the `Permissive Consensus`. In addition, the specificity of the platform business regulation policy was considered as a national context, and the Korean context, which emphasized fairness and equality, limited the path of platform business regulation policy. This study is meaningful in that it has theoretically developed the platform company regulation and response process in a Korean context.
+ This study focuses on the `investor-platform-consumer alliance` with `flashpoint` as a factor that affects policy changes in regulations towards platform business. In order to analyze the regulatory response strategy of platform business and the policy change process of regulation toward platform business, this study conducts a text mining technique, `word appearance frequency`, `weighted log Odds ratio`, and a `topic modeling` analysis. The analysis confirmed that as the business grows with the support of patient capital, the alliance between platform business and consumers is strengthened to a certain level. However, the frequent advent of `flashpoint` has since loosened the alliance with consumers and broken the `Permissive Consensus`. In addition, the specificity of the platform business regulation policy was considered as a national context, and the Korean context, which emphasized fairness and equality, limited the path of platform business regulation policy.
 
 
 Keywords: platform business regulation, policy change, text mining, topic modeling, Coupang
 
 ### Korean
-본 연구는 한국적 맥락에서 플랫폼 기업의 규제대응전략과 규제 변동과정에 미치는 요인을 탐구하는 단초가 되는 연구이다. 먼저 플랫폼 기업규제 정책변동에 영향을 주는 요인으로 Thelen이 제시한 5가지 플래시포인트와 투자자-플랫폼-소비자 동맹관계에 주목하였다. 본 연구에서는 이를 확인하기 위해 국내 대표적인 플랫폼 기업인 쿠팡을 중심으로, 신문기사 자료를 사용하여 텍스트마이닝 기업인 단어빈도분석, 가중로그승산비(Weighted Log Odds ratio) 분석과 토픽모델링(Topic Modeling) 분석을 실시하였다. 연구결과 참을성 있는 자본의 지원을 받아 성장할수록 플랫폼기업과 소비자와의 동맹관계는 일정 수준까지 강화됨을 확인하였으나, 플래시포인트의 빈번한 출현은 소비자와의 동맹과 관대한 합의의 결렬을 이끌었고, 나아가 공정과 평등을 중시하는 한국적 맥락의 특수성을 고려하여 플랫폼 규제정책의 경로가 제약됨을 확인했다.본 연구는 플랫폼 기업 규제와 대응과정을 한국적 맥락에서 이론적으로 발전시켰다는 점에서 의의가 있다.
+본 연구는 한국적 맥락에서 플랫폼 기업의 규제대응전략과 규제 변동과정에 미치는 요인을 탐구하는 단초가 되는 연구이다. 먼저 플랫폼 기업규제 정책변동에 영향을 주는 요인으로 Thelen이 제시한 다섯 가지 플래시포인트와 투자자-플랫폼-소비자 동맹관계에 주목하였다. 본 연구에서는 이를 확인하기 위해 국내 대표적인 플랫폼 기업인 쿠팡을 중심으로, 신문기사 자료를 사용하여 텍스트마이닝 기업인 단어빈도분석, 가중로그승산비(Weighted Log Odds ratio) 분석과 토픽모델링(Topic Modeling) 분석을 실시하였다. 연구결과 참을성 있는 자본의 지원을 받아 성장할수록 플랫폼기업과 소비자와의 동맹관계는 일정 수준까지 강화됨을 확인하였으나, 플래시포인트의 빈번한 출현은 소비자와의 동맹과 관대한 합의의 결렬을 이끌었고, 나아가 공정과 평등을 중시하는 한국적 맥락의 특수성을 고려하여 플랫폼 규제정책의 경로가 제약됨을 확인했다.본 연구는 플랫폼 기업 규제와 대응과정을 한국적 맥락에서 이론적으로 발전시켰다는 점에서 의의가 있다.
 
 주제어: 플랫폼 규제, 정책변동, 텍스트마이닝, 토픽모델링, 쿠팡  
 
@@ -20,9 +20,9 @@ Keywords: platform business regulation, policy change, text mining, topic modeli
 
 김주상(Kim, Ju Sang) `First Co-Author`   
 김하늘(Kim, Ha Neul) `First Co-Author`   
-송가영(Song, Ga Young) `First Co-Author`   
+송가영(Song, Gayoung) `First Co-Author`   
 오태성(Oh, Tae Sung) `First Co-Author`   
-박아름(Park, Ah Reum) `Corresponding Author`  
+박아름(Park, Arum) `Corresponding Author`  
 
 
 ## Requirements
