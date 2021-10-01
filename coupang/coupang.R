@@ -201,6 +201,11 @@ data_coupang %>%
   geom_text(aes(label = n), vjust = -1) +
   ylim(0, 2200)
 
+# 언론사 -------------------------------------------------
+
+data_coupang %>% 
+  count(news)
+
 # 기사빈도 시각화 --------------------------------------------
 
 data_coupang %>% 
@@ -212,9 +217,7 @@ data_coupang %>%
   # ggtitle("분기별 기사 빈도수 (검색어: 쿠팡)") +
   theme_minimal(base_family = "AppleGothic") +
   theme(legend.position = "none") +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
   xlab("분기 2011년 1분기 ~ 2021년 7월 기준") +
   ylim(0, 850) +
   ggplot2::annotate("rect", xmin = 0, xmax = 23, ymin = 0, ymax = 130, alpha = .3, fill="#67D5B5") +
@@ -326,6 +329,9 @@ data_word_prep2 %>%
   filter(!n >= 10) -> anti_join10
 
 data_word_prep2 %>% anti_join(anti_join10) -> data_word_prep2 # 659,773 건으로 정제
+
+data_word_prep2 %>% 
+  count(시기)
 
 # TF-IDF 값 --------------------------------------------
 
