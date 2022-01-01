@@ -1,5 +1,5 @@
 # Title
-플랫폼 기업의 구조적 권력과 규제정정책변동: 쿠팡(Coupang) 사례를 중심으로
+플랫폼 기업의 구조적 권력과 규제정정책변동: 쿠팡(Coupang) 사례를 중심으로   
 Platform Business Regulatory Response Strategies and Policy Changes: Focusing on Coupang
 
 ## Abstract
